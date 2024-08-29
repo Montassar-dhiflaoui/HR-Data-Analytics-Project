@@ -1,0 +1,106 @@
+BEGIN;
+
+
+CREATE TABLE IF NOT EXISTS public.Dim_Department
+(
+    Department_ID integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    Department character varying COLLATE pg_catalog.default,
+    CONSTRAINT Dim_Department_pkey PRIMARY KEY (Department_ID)
+);
+
+CREATE TABLE IF NOT EXISTS public.Dim_Employee
+(
+    Employee_ID integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    Employee_Name character varying COLLATE pg_catalog.default,
+    Age integer,
+    Gender character varying COLLATE pg_catalog.default,
+    Race character varying COLLATE pg_catalog.default,
+    Marital_Status character varying COLLATE pg_catalog.default,
+    State character varying COLLATE pg_catalog.default,
+    Citizen_Description character varying COLLATE pg_catalog.default,
+    Date_Of_Hire date,
+    Recruitment_Source character varying COLLATE pg_catalog.default,
+    Attrition character varying COLLATE pg_catalog.default,
+    Position_ID integer,
+    Department_ID integer,
+    CONSTRAINT Dim_Employee_pkey PRIMARY KEY (Employee_ID)
+);
+
+CREATE TABLE IF NOT EXISTS public.Dim_Position
+(
+    Position_ID integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    Position character varying COLLATE pg_catalog.default,
+    CONSTRAINT Dim_Position_pkey PRIMARY KEY (Position_ID)
+);
+
+CREATE TABLE IF NOT EXISTS public.Dim_Termination
+(
+    Termination_ID integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    Termination_Reason character varying COLLATE pg_catalog.default,
+    Termination_Date date,
+    Employee_ID integer,
+    CONSTRAINT Dim_Termination_pkey PRIMARY KEY (Termination_ID)
+);
+
+CREATE TABLE IF NOT EXISTS public.Fact_Employee_Performance
+(
+    Employee_ID integer,
+    Termination_ID integer,
+    Engagement_Survey_Score double precision,
+    Employee_Satisfaction integer,
+    Special_Projects_Count integer,
+    Days_Late_Last_Month integer,
+    Absences integer
+);
+
+CREATE TABLE IF NOT EXISTS public.Fact_Salary
+(
+    Employee_ID integer,
+    Salary integer
+);
+
+ALTER TABLE IF EXISTS public.Dim_Employee
+    ADD CONSTRAINT Dim_Employee_Department_ID_fkey FOREIGN KEY (Department_ID)
+    REFERENCES public.Dim_Department (Department_ID) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public.Dim_Employee
+    ADD CONSTRAINT Dim_Employee_Position_ID_fkey FOREIGN KEY (Position_ID)
+    REFERENCES public.Dim_Position (Position_ID) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public.Dim_Termination
+    ADD CONSTRAINT Dim_Termination_Employee_ID_fkey FOREIGN KEY (Employee_ID)
+    REFERENCES public.Dim_Employee (Employee_ID) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public.Fact_Employee_Performance
+    ADD CONSTRAINT Fact_Employee_Performance_Employee_ID_fkey FOREIGN KEY (Employee_ID)
+    REFERENCES public.Dim_Employee (Employee_ID) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.Fact_Employee_Performance
+    ADD CONSTRAINT Fact_Employee_Performance_Termination_ID_fkey FOREIGN KEY (Termination_ID)
+    REFERENCES public.Dim_Termination (Termination_ID) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.Fact_Salary
+    ADD CONSTRAINT Fact_Salary_Employee_ID_fkey FOREIGN KEY (Employee_ID)
+    REFERENCES public.Dim_Employee (Employee_ID) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+END;
